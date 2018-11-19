@@ -59,40 +59,61 @@ void setup()
     {
         Serial.println("Handshake failed.");
     }
+    
 }
+
+int xPixel=0;
+int yPixel=0;
+int colorPixel=0;
+
+String inputJSONMessage="";
+String outputJSONMessage="";
+
 
 void loop()
 {
-    GD.ClearColorRGB(255, 0, 0);
+    // GD.ClearColorRGB(255, 0, 0);
+
     GD.Clear();
     GD.get_inputs();
 
-    String inputJSONMessage;
-    String outputJSONMessage;
-    StaticJsonBuffer<200> jsonBufferOutput;
-
-    JsonObject& outputJSON = jsonBufferOutput.createObject();
-    outputJSON["x"] = GD.inputs.x;
-    outputJSON["y"] = GD.inputs.y;
-    outputJSON.printTo(outputJSONMessage);
-
-    
-    
+    // StaticJsonBuffer<200> jsonBufferOutput; //THIS TAKES UP ALL OF THE RAM
+    // JsonObject& outputJSONObject = jsonBufferOutput.createObject();
+    // outputJSONObject["x"] = GD.inputs.x;
+    // outputJSONObject["y"] = GD.inputs.y;
+    // outputJSONObject.printTo(outputJSONMessage);
 
     if (client.connected())
     {
         webSocketClient.sendData(outputJSONMessage);
+
         webSocketClient.getData(inputJSONMessage);
+
         if (inputJSONMessage.length() > 0)
         {
-            Serial.print("Received data: ");
-            Serial.println(inputJSONMessage);
+            StaticJsonBuffer<200> inputJSONBuffer;
+            JsonObject& inputJSONObject = inputJSONBuffer.parseObject(inputJSONMessage);
+            xPixel=inputJSONObject["x"];
+            yPixel=inputJSONObject["y"];
+            colorPixel=inputJSONObject["color"];
+
+            GD.Begin(POINTS);
+            GD.ColorRGB(colorPixel);
+            GD.Vertex2ii(xPixel, yPixel);
+
+            // GD.Begin(RECTS);
+            // GD.ColorRGB(colorPixel);
+            // GD.Vertex2ii(0, 0);
+            // GD.Vertex2ii(479, 271);
+
+
+            // Serial.println(String(xFrame) + ":" + String(yFrame));
+            // JsonArray& frame = inputJSONObject["frame"];
         }
     }
     else
     {
         Serial.println("Client disconnected.");
     }
-    // delay(3000);
     GD.swap();
 }

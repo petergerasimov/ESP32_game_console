@@ -13,16 +13,15 @@ int curX = 0;
 int curY = 0;
 
 void setup() {
-  size(1280, 720);
+  size(480, 272);
   ws= new WebsocketServer(this, 80, "/stream");
   //smooth(3);
   noSmooth();
-  frameRate(60);
 
   colorMode(RGB);
   imageMode(CORNER);
   background(0);
-  
+
   dimension  = new Rectangle(displayWidth, displayHeight);
   try {
     robot = new Robot();
@@ -35,17 +34,29 @@ void setup() {
 
 PImage currFrame;
 JSONObject json = new JSONObject();
+int x=0;
+int y=0;
 
 void draw() {
+  background(0);
   currFrame=grabFrame(dimension, robot);
-  currFrame.resize(2,2);
-  image(currFrame, 0, 0, width, height);
-  json.setInt("width",currFrame.width);
-  json.setInt("height",currFrame.height);
-  json.setJSONArray("frame", arrToJsonArr(currFrame.pixels));
-  println(json);
+  currFrame.resize(480, 272);
+  //image(currFrame, 0, 0, width, height);
+  //json.setJSONArray("frame", arrToJsonArr(currFrame.pixels));
+  
+  for(x=0;x<currFrame.width;x++){
+    for(y=0;y<currFrame.height;y++){
+      json.setInt("x", x);
+      json.setInt("y", y);
+      json.setInt("color", currFrame.pixels[(y*currFrame.width) + x]);
+      ws.sendMessage(json.toString());
+      stroke(currFrame.pixels[(y*currFrame.width) + x]);
+      rect(x,y,1,1);
+    }
+  }
+  
+  //println(json);
   //robot.mouseMove(curX, curY); //GET DATA FROM SOCKET AND MOVE THE MOUSE
-  ws.sendMessage(json.toString());
 }
 
 PImage grabFrame(Rectangle dim, Robot bot) {
@@ -62,17 +73,10 @@ void webSocketServerEvent(String data) {
   }
 }
 
-JSONArray arrToJsonArr(int arr[]){
+JSONArray arrToJsonArr(int arr[]) {
   JSONArray jsonArr = new JSONArray();
   for (int i = 0; i < arr.length; i++) {
     jsonArr.setInt(i, arr[i]);
   }
   return jsonArr;
-}
-
-void printColor(int p){
-  int r = (p>>16) & 0xff;
-  int g = (p>>8) & 0xff;
-  int b = p & 0xff;
-  println(r + ":" + g + ":" + b);
 }
