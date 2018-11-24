@@ -18,12 +18,12 @@ char host[] = "192.168.0.104";
 WebSocketClient webSocketClient;
 WiFiClient client;
 
-void setup()
-{
+void setup(){
+    
     GD.begin(0);
     GD.self_calibrate();
     Serial.begin(9600);
-
+    
     WiFi.begin(ssid, password);
 
     while (WiFi.status() != WL_CONNECTED)
