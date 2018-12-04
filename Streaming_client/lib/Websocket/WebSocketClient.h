@@ -46,6 +46,7 @@ http://tools.ietf.org/html/draft-hixie-thewebsocketprotocol-75
 #include <Arduino.h>
 #include <Stream.h>
 #include "Client.h"
+#include <string>
 
 // CRLF characters to terminate lines/handshakes in headers.
 #define CRLF "\r\n"
@@ -91,6 +92,7 @@ public:
     
     // Get data off of the stream
     bool getData(String& data, uint8_t *opcode = NULL);
+    // bool getData(std::string ,uint8_t *opcode = NULL);
 
     // Write data to the stream
     void sendData(const char *str, uint8_t opcode = WS_OPCODE_TEXT);

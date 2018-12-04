@@ -2,18 +2,25 @@
 
 #include <EEPROM.h>
 #include <SPI.h>
-//#include <string>
+#include <cJSON.h>
+#include <string>
+
 
 //Networking
 #include <WiFi.h>
 #include "WebSocketClient.h"
-#include "ArduinoJson.h"
+// #include "ArduinoJson.h"
 
-const char *ssid = "Nika";
-const char *password = "MnogoHubavaParolaZaWIFI";
+
+using namespace std;
+
+
+
+const char *ssid = "elsys";
+const char *password = "";
 
 char path[] = "/stream";
-char host[] = "192.168.0.104";
+char host[] = "192.168.97.180";
 
 WebSocketClient webSocketClient;
 WiFiClient client;
@@ -23,12 +30,24 @@ void setup(){
     GD.begin(0);
     GD.self_calibrate();
     Serial.begin(9600);
-    
-    WiFi.begin(ssid, password);
+    //DO NOT TOUCH
+    //  This is here to force the ESP32 to reset the WiFi and initialise correctly.
+    Serial.print("WIFI status = ");
+    Serial.println(WiFi.getMode());
+    WiFi.disconnect(true);
+    delay(1000);
+    WiFi.mode(WIFI_STA);
+    delay(1000);
+    Serial.print("WIFI status = ");
+    Serial.println(WiFi.getMode());
+    // End silly stuff !!!
+
+
+    WiFi.begin(ssid);
 
     while (WiFi.status() != WL_CONNECTED)
     {
-        delay(500);
+        delay(100);
         Serial.print(".");
     }
 
@@ -39,7 +58,7 @@ void setup(){
 
     // delay(5000);
 
-    if (client.connect(host, 80))
+    if (client.connect(host, 6969))
     {
         Serial.println("Connected");
     }
@@ -64,51 +83,45 @@ void setup(){
 
 int xPixel=0;
 int yPixel=0;
-int colorPixel=0;
-
-String inputJSONMessage="";
-String outputJSONMessage="";
+int colorPixel = 0;
 
 
-void loop()
-{
-    // GD.ClearColorRGB(255, 0, 0);
+String inputJSONMessage;
+String outputJSONMessage = "dab";
+
+void loop(){
+    cJSON *inputJSON;
 
     GD.Clear();
     GD.get_inputs();
-
-    // StaticJsonBuffer<200> jsonBufferOutput; //THIS TAKES UP ALL OF THE RAM
-    // JsonObject& outputJSONObject = jsonBufferOutput.createObject();
-    // outputJSONObject["x"] = GD.inputs.x;
-    // outputJSONObject["y"] = GD.inputs.y;
-    // outputJSONObject.printTo(outputJSONMessage);
-
     if (client.connected())
     {
+        int color = 0;
         webSocketClient.sendData(outputJSONMessage);
 
         webSocketClient.getData(inputJSONMessage);
+        // if (inputJSONMessage.length() > 0)
+        // {
+        inputJSON = cJSON_Parse(inputJSONMessage.c_str());
+        if(inputJSON!=NULL){
+            cJSON * frame = cJSON_GetObjectItem(inputJSON, "frame");
 
-        if (inputJSONMessage.length() > 0)
-        {
-            StaticJsonBuffer<200> inputJSONBuffer;
-            JsonObject& inputJSONObject = inputJSONBuffer.parseObject(inputJSONMessage);
-            xPixel=inputJSONObject["x"];
-            yPixel=inputJSONObject["y"];
-            colorPixel=inputJSONObject["color"];
+            for (int i = 0 ; i <cJSON_GetArraySize(frame) ; i++){
+                color = cJSON_GetArrayItem(frame, i)->valueint;
+                
+                int x = i%30;
+                int y = i/30; 
 
-            GD.Begin(POINTS);
-            GD.ColorRGB(colorPixel);
-            GD.Vertex2ii(xPixel, yPixel);
+                // GD.Begin(POINTS);
+                // GD.ColorRGB(color);
+                // GD.Vertex2ii(x,y);
 
-            // GD.Begin(RECTS);
-            // GD.ColorRGB(colorPixel);
-            // GD.Vertex2ii(0, 0);
-            // GD.Vertex2ii(479, 271);
-
-
-            // Serial.println(String(xFrame) + ":" + String(yFrame));
-            // JsonArray& frame = inputJSONObject["frame"];
+                GD.Begin(RECTS);
+                GD.ColorRGB(color);
+                GD.Vertex2ii(x*16, y*16);
+                GD.Vertex2ii((x+1)*16, (y+1)*16);
+            }
+            cJSON_Delete(inputJSON);
         }
     }
     else
@@ -116,4 +129,5 @@ void loop()
         Serial.println("Client disconnected.");
     }
     GD.swap();
+    
 }
