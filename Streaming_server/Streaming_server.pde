@@ -2,27 +2,36 @@ import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.AWTException;
 
-import websockets.*;
-WebsocketServer ws;
+import javax.imageio.*;
+import java.awt.image.*; 
+
+import java.net.*;
+import java.io.*;
 
 //PImage frame;
+DatagramSocket ds; 
 Rectangle dimension;
 Robot robot;
 
 int curX = 0;
 int curY = 0;
-
+int clientPort = 1337; 
 
 void setup() {
   size(480, 272);
-  ws= new WebsocketServer(this, 6969, "/stream");
   //smooth(3);
   noSmooth();
-  frameRate(1);
+  frameRate(60);
   colorMode(RGB);
   imageMode(CORNER);
   background(0);
-
+  
+  try {
+    ds = new DatagramSocket();
+  } catch (SocketException e) {
+    e.printStackTrace();
+  }
+  
   dimension  = new Rectangle(displayWidth, displayHeight);
   try {
     robot = new Robot();
@@ -34,51 +43,56 @@ void setup() {
 }
 
 PImage currFrame;
-JSONObject json = new JSONObject();
+
 int x=0;
 int y=0;
 
 void draw() {
   background(0);
   currFrame=grabFrame(dimension, robot);
-  currFrame.resize(20, 20);
+  currFrame.resize(60, 34);
   image(currFrame, 0, 0, width, height);
-  json.setJSONArray("frame", arrToJsonArr(currFrame.pixels));
-  
-  //for(x=0;x<currFrame.width;x++){
-  //  for(y=0;y<currFrame.height;y++){
-  //    json.setInt("x", x);
-  //    json.setInt("y", y);
-      //json.setInt("color", currFrame.pixels[(y*currFrame.width) + x]);
-      ws.sendMessage(json.toString());
-  //    stroke(currFrame.pixels[(y*currFrame.width) + x]);
-  //    rect(x,y,1,1);
-      //println(json.toString());
-  //  }
-  //}
-  
-  //println(json);
-  //robot.mouseMove(curX, curY); //GET DATA FROM SOCKET AND MOVE THE MOUSE
+  broadcast(currFrame);
 }
 
 PImage grabFrame(Rectangle dim, Robot bot) {
   return new PImage(bot.createScreenCapture(dim));
 }
 
-void webSocketServerEvent(String data) {
-  JSONObject json = parseJSONObject(data);
-  if (json == null) {
-    println("JSONObject could not be parsed");
-  } else {
-    curX = json.getInt("x");
-    curY = json.getInt("y");
-  }
-}
 
-JSONArray arrToJsonArr(int arr[]) {
-  JSONArray jsonArr = new JSONArray();
-  for (int i = 0; i < arr.length; i++) {
-    jsonArr.setInt(i, arr[i]);
+void broadcast(PImage img) {
+
+  // We need a buffered image to do the JPG encoding
+  BufferedImage bimg = new BufferedImage( img.width,img.height, BufferedImage.TYPE_INT_RGB );
+
+  // Transfer pixels from localFrame to the BufferedImage
+  img.loadPixels();
+  bimg.setRGB( 0, 0, img.width, img.height, img.pixels, 0, img.width);
+
+  // Need these output streams to get image as bytes for UDP communication
+  ByteArrayOutputStream baStream  = new ByteArrayOutputStream();
+  BufferedOutputStream bos    = new BufferedOutputStream(baStream);
+
+  // Turn the BufferedImage into a JPG and put it in the BufferedOutputStream
+  // Requires try/catch
+  try {
+    ImageIO.write(bimg, "jpg", bos);
+  } 
+  catch (IOException e) {
+    e.printStackTrace();
   }
-  return jsonArr;
+
+  // Get the byte array, which we will send out via UDP!
+  byte[] packet = baStream.toByteArray();
+  
+  // Send JPEG data as a datagram
+  println("Sending datagram with " + packet.length + " bytes");
+  
+  try {
+    byte[] ipAddr = new byte[]{(byte)192,(byte)168,(byte)0,(byte)255};
+    ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByAddress(ipAddr),clientPort));
+  } 
+  catch (Exception e) {
+    e.printStackTrace();
+  }
 }

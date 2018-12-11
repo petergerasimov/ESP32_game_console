@@ -743,7 +743,6 @@ public:
 
   void dumpscreen(void);
   byte load(const char *filename, void (*progress)(long, long) = NULL);
-
   //FT81XMANIA TEAM (RndMnkIII) método loadSdFat para carga de assets desde lector SDIO tarjetas Teensy 3.5/3.6
   byte loadSdFat(File& archivo, void (*progress)(long, long) = NULL);
 

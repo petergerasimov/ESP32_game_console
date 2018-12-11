@@ -1943,7 +1943,6 @@ byte GDClass::load(const char *filename, void (*progress)(long, long))
 #endif
 }
 
-
 //RndMnkIII: m\E9todo loadSdFat para carga de assets desde lector SDIO tarjetas Teensy 3.5/3.6
 byte GDClass::loadSdFat(File& archivo, void (*progress)(long, long))
 {
