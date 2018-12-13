@@ -7,6 +7,9 @@ import java.awt.image.*;
 
 import java.net.*;
 import java.io.*;
+import java.util.Arrays;
+
+
 
 //PImage frame;
 DatagramSocket ds; 
@@ -16,6 +19,8 @@ Robot robot;
 int curX = 0;
 int curY = 0;
 int clientPort = 1337; 
+
+PImage img;
 
 void setup() {
   size(480, 272);
@@ -40,6 +45,9 @@ void setup() {
     println(cause);
     exit();
   }
+  
+  img = loadImage("dankata.jpg");
+  
 }
 
 PImage currFrame;
@@ -49,7 +57,8 @@ int y=0;
 
 void draw() {
   background(0);
-  currFrame=grabFrame(dimension, robot);
+  //currFrame=grabFrame(dimension, robot);
+  currFrame=img;
   currFrame.resize(60, 34);
   image(currFrame, 0, 0, width, height);
   broadcast(currFrame);
@@ -83,13 +92,17 @@ void broadcast(PImage img) {
   }
 
   // Get the byte array, which we will send out via UDP!
-  byte[] packet = baStream.toByteArray();
+  //byte[] packet = new byte[baStream.toByteArray().length+5];
+  byte[] nums = {6,5,0,0,0};
   
+  byte[] packet = (byte[])ArrayUtils.addAll(baStream.toByteArray() , nums);
+
+  packet[packet.length]=10;
   // Send JPEG data as a datagram
   println("Sending datagram with " + packet.length + " bytes");
   
   try {
-    byte[] ipAddr = new byte[]{(byte)192,(byte)168,(byte)0,(byte)255};
+    byte[] ipAddr = new byte[]{(byte)192,(byte)168,(byte)43,(byte)255};
     ds.send(new DatagramPacket(packet,packet.length, InetAddress.getByAddress(ipAddr),clientPort));
   } 
   catch (Exception e) {
