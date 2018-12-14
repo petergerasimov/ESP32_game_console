@@ -12,8 +12,7 @@ char host[] = "192.168.96.104";
 int port=1337;
 
 WiFiUDP udp;
-uint8_t buffer[1024];
-// static GDTransport GDTR;
+uint8_t buffer[1460];
 
 void connectToWiFi(char*,char*);
 
@@ -30,7 +29,7 @@ void loop(){
     GD.get_inputs();
     udp.parsePacket();
 
-    if(udp.read(buffer, 1024) > 0){
+    if(udp.read(buffer, 1460) > 0){
         GD.cmd_loadimage(0, 0);
         int buffSize = 0;
 
@@ -51,7 +50,7 @@ void loop(){
         GD.Begin(BITMAPS);
 
         GD.BitmapSize(NEAREST, BORDER, BORDER, 480, 272);
-        GD.cmd_scale(F16(16), F16(16));
+        GD.cmd_scale(F16(4), F16(4));
         GD.cmd_setmatrix();
 
         GD.Vertex2ii(0, 0);
