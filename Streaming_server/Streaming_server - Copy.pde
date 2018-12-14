@@ -97,14 +97,14 @@ void broadcast(PImage img) {
   byte[] sizeOfImage = new byte[5];
   int temp = baStream.toByteArray().length;
   for(int i=0;i<5;i++){
-    sizeOfImage[4-i] = (byte)(temp%10); 
+    sizeOfImage[i] = (byte)(temp%10); 
     temp/=10;
   }
-  byte[] fill = new byte[packetSize - (baStream.toByteArray().length + sizeOfImage.length)];
+  byte[] fill = new byte[packetSize - baStream.toByteArray().length + sizeOfImage.length];
   byte[] packet = connectByteArray(connectByteArray(baStream.toByteArray(),fill),sizeOfImage);
   
   // Send JPEG data as a datagram
-
+  println("Sending datagram with " + packet.length + " bytes");
   
   try {
     byte[] ipAddr = new byte[]{(byte)192,(byte)168,(byte)0,(byte)255};
