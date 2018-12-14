@@ -15,29 +15,7 @@ WiFiUDP udp;
 uint8_t buffer[1024];
 // static GDTransport GDTR;
 
-void connectToWiFi(char *ssid,char *password){
-    Serial.print("WIFI status = ");
-    Serial.println(WiFi.getMode());
-    WiFi.disconnect(true);
-    delay(1000);
-    WiFi.mode(WIFI_STA);
-    delay(1000);
-    Serial.print("WIFI status = ");
-    Serial.println(WiFi.getMode());
-
-    WiFi.begin(ssid , password);
-
-    while (WiFi.status() != WL_CONNECTED)
-    {
-        delay(100);
-        Serial.print(".");
-    }
-
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
-}
+void connectToWiFi(char*,char*);
 
 void setup(){
     GD.begin(0);
@@ -71,9 +49,37 @@ void loop(){
         }
         
         GD.Begin(BITMAPS);
+
+        GD.BitmapSize(NEAREST, BORDER, BORDER, 480, 272);
+        GD.cmd_scale(F16(16), F16(16));
+        GD.cmd_setmatrix();
+
         GD.Vertex2ii(0, 0);
     }
 
     GD.swap();
 }
 
+void connectToWiFi(char *ssid,char *password){
+    Serial.print("WIFI status = ");
+    Serial.println(WiFi.getMode());
+    WiFi.disconnect(true);
+    delay(1000);
+    WiFi.mode(WIFI_STA);
+    delay(1000);
+    Serial.print("WIFI status = ");
+    Serial.println(WiFi.getMode());
+
+    WiFi.begin(ssid , password);
+
+    while (WiFi.status() != WL_CONNECTED)
+    {
+        delay(100);
+        Serial.print(".");
+    }
+
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+}
