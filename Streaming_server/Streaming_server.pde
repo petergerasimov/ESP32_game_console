@@ -30,7 +30,7 @@ void setup() {
   size(480, 272);
   //smooth(3);
   noSmooth();
-  frameRate(60);
+  frameRate(15);
   colorMode(RGB);
   imageMode(CORNER);
   background(0);
@@ -64,10 +64,6 @@ void draw() {
   currFrame=grabFrame(dimension, robot);
   currFrame.resize(120, 68);
   image(currFrame, 0, 0, width, height);
-
-  //for(currRow=0;currRow<272;currRow+=8){
-  //  broadcast(currFrame.get(0,currRow,480,8),0.3);
-  //}
   broadcast(currFrame,0.1);
 }
 
@@ -133,7 +129,7 @@ void broadcast(PImage img,float compression) {
   else println("Frame too large :" + baStream.toByteArray().length);
 }
 
-byte[] connectByteArray(byte[] a,byte[] b){
+ byte[] connectByteArray(byte[] a,byte[] b){
  byte[] connected = new byte[a.length+b.length];
  System.arraycopy(a, 0, connected, 0, a.length);
  System.arraycopy(b, 0, connected, a.length, b.length);

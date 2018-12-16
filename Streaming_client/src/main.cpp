@@ -16,8 +16,8 @@ int port=1337;
 
 
 WiFiUDP udp;
-uint8_t buffer[MTU];
-int buffSize = 0;
+uint8_t frame[MTU];
+int frameSize = 0;
 
 void connectToWiFi(char*,char*);
 void loadJPEG(uint8_t*,int);
@@ -39,9 +39,9 @@ void loop(){
     GD.get_inputs();
     
 
-    if(buffSize>0){
+    if(frameSize>0){
         GD.cmd_loadimage(0, 0);
-        loadJPEG(buffer,buffSize);   
+        loadJPEG(frame,frameSize);   
         GD.Begin(BITMAPS);
 
         GD.BitmapSize(NEAREST, BORDER, BORDER, 480, 272);
@@ -49,7 +49,7 @@ void loop(){
         GD.cmd_setmatrix();
         GD.Vertex2ii(0, 0);
 
-        buffSize = 0;
+        frameSize = 0;
     }
 
     GD.swap();
@@ -91,11 +91,11 @@ void loadJPEG(uint8_t *jpeg,int size){
 
 void recieveFrame(void *p){
     while(true){
-        if(buffSize==0){
+        if(frameSize==0){
             udp.parsePacket();
-            if(udp.read(buffer, MTU) > 0){
+            if(udp.read(frame, MTU) > 0){
                 for(int i=0;i<5;i++){
-                    buffSize += buffer[(sizeof(buffer)/sizeof(buffer[0]))-5+i]*pow(10,4-i);
+                    frameSize += frame[(sizeof(frame)/sizeof(frame[0]))-5+i]*pow(10,4-i);
                 }
             }
         }
