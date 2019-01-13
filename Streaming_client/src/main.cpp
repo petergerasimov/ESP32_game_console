@@ -27,7 +27,7 @@ void setup(){
     rtc_clk_cpu_freq_set(RTC_CPU_FREQ_240M);
     GD.begin(0);
     // GD.self_calibrate();
-    Serial.begin(9600);
+    Serial.begin(115200);
     connectToWiFi("Nika","MnogoHubavaParolaZaWIFI");
     udp.begin(port);
     xTaskCreatePinnedToCore( recieveFrame, "recieverTask",8096, NULL, 1, NULL ,0);
@@ -35,11 +35,12 @@ void setup(){
 
 void loop(){
     double m=millis();
-    GD.Clear();
-    GD.get_inputs();
+    
     
 
-    if(frameSize>0){
+    if(frameSize>0&&frameSize<=MTU){ //Prevents corrupted frames from loading
+        GD.Clear();
+        GD.get_inputs();
         GD.cmd_loadimage(0, 0);
         loadJPEG(frame,frameSize);   
         GD.Begin(BITMAPS);
@@ -50,9 +51,10 @@ void loop(){
         GD.Vertex2ii(0, 0);
 
         frameSize = 0;
+        GD.swap();
     }
 
-    GD.swap();
+    
 
     Serial.println("FPS:" + String(1000/(millis()-m)));
 }
